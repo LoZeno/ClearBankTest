@@ -38,28 +38,17 @@ namespace ClearBank.DeveloperTest.Services
 
         private static MakePaymentResult PaymentSuccessfulResult()
         {
-            return new()
-            {
-                Success = true
-            };
+            return new(true, null);
         }
 
         private static MakePaymentResult AccountNotAllowedForPaymentResult(string validationMessage)
         {
-            return new()
-            {
-                Success = false,
-                ErrorMessage = validationMessage
-            };
+            return new(false, validationMessage);
         }
 
         private static MakePaymentResult InvalidAccountResult(string debtorAccountNumber)
         {
-            return new()
-            {
-                Success = false,
-                ErrorMessage = $"{debtorAccountNumber} is not a valid account number"
-            };
+            return new(false, $"{debtorAccountNumber} is not a valid account number");
         }
 
         private static Dictionary<PaymentScheme, IPaymentSchemeValidator> InitializePaymentSchemeValidators()

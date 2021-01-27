@@ -1,8 +1,6 @@
 ﻿namespace ClearBank.DeveloperTest.Types
 {
-    public class MakePaymentResult
+    public record MakePaymentResult(bool Success, string ErrorMessage)
     {
-        public bool Success { get; set; }
-        public string ErrorMessage { get; set; }
     }
 }
