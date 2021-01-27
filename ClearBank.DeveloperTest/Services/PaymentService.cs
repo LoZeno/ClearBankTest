@@ -25,12 +25,7 @@ namespace ClearBank.DeveloperTest.Services
             switch (paymentScheme)
             {
                 case PaymentScheme.Bacs:
-                    if (account == null)
-                    {
-                        result.Success = false;
-                        result.ErrorMessage = $"{debtorAccountNumber} is not a valid account number";
-                    }
-                    else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
+                    if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
                     {
                         result.Success = false;
                         result.ErrorMessage = $"{PaymentScheme.Bacs} is not allowed for this account";
@@ -38,12 +33,7 @@ namespace ClearBank.DeveloperTest.Services
                     break;
 
                 case PaymentScheme.FasterPayments:
-                    if (account == null)
-                    {
-                        result.Success = false;
-                        result.ErrorMessage = $"{debtorAccountNumber} is not a valid account number";
-                    }
-                    else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
+                    if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
                     {
                         result.Success = false;
                         result.ErrorMessage = $"{PaymentScheme.FasterPayments} is not allowed for this account";
@@ -55,12 +45,7 @@ namespace ClearBank.DeveloperTest.Services
                     break;
 
                 case PaymentScheme.Chaps:
-                    if (account == null)
-                    {
-                        result.Success = false;
-                        result.ErrorMessage = $"{debtorAccountNumber} is not a valid account number";
-                    }
-                    else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
+                    if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
                     {
                         result.Success = false;
                         result.ErrorMessage = $"{PaymentScheme.Chaps} is not allowed for this account";
@@ -84,7 +69,7 @@ namespace ClearBank.DeveloperTest.Services
 
         private static MakePaymentResult InvalidAccountResult(string debtorAccountNumber)
         {
-            return new MakePaymentResult
+            return new()
             {
                 Success = false,
                 ErrorMessage = $"{debtorAccountNumber} is not a valid account number"
