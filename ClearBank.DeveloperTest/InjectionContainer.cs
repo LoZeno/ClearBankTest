@@ -21,6 +21,7 @@ namespace ClearBank.DeveloperTest
                 _ => throw new ConfigurationErrorsException("Invalid DataStoreType configuration")
             };
         }
+
         public IServiceProvider GetProvider()
         {
             return _serviceCollection.BuildServiceProvider();

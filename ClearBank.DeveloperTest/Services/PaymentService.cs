@@ -1,4 +1,6 @@
-﻿using ClearBank.DeveloperTest.Data;
+﻿using System.Collections.Generic;
+using ClearBank.DeveloperTest.Data;
+using ClearBank.DeveloperTest.Services.PaymentSchemeValidators;
 using ClearBank.DeveloperTest.Types;
 
 namespace ClearBank.DeveloperTest.Services
@@ -6,67 +8,47 @@ namespace ClearBank.DeveloperTest.Services
     public class PaymentService : IPaymentService
     {
         private readonly IAccountDataStore _accountDataStore;
+        private readonly IDictionary<PaymentScheme, IPaymentSchemeValidator> _paymentSchemeValidators;
 
         public PaymentService(IAccountDataStore accountDataStore)
         {
             _accountDataStore = accountDataStore;
+            _paymentSchemeValidators = InitializePaymentSchemeValidators();
         }
+
         public MakePaymentResult MakePayment(MakePaymentRequest request)
         {
             var (_, debtorAccountNumber, amount, _, paymentScheme) = request;
-            
-            if (!_accountDataStore.TryGetAccount(debtorAccountNumber, out var account))
-            {
+
+            var (accountExists, account) = _accountDataStore.GetAccount(debtorAccountNumber);
+            if (!accountExists)
                 return InvalidAccountResult(debtorAccountNumber);
-            }   
 
-            var result = new MakePaymentResult{Success = true};
+            var paymentValidator = _paymentSchemeValidators[paymentScheme];
 
-            switch (paymentScheme)
+            var (isValid, validationMessage) = paymentValidator.IsRequestValidForPayment(request, account);
+
+            if (!isValid)
+                return AccountNotAllowedForPaymentResult(validationMessage);
+
+            account.Balance -= amount;
+            _accountDataStore.UpdateAccount(account);
+
+            return PaymentSuccessfulResult();
+        }
+
+        private static MakePaymentResult PaymentSuccessfulResult()
+        {
+            return new() {Success = true};
+        }
+
+        private static MakePaymentResult AccountNotAllowedForPaymentResult(string validationMessage)
+        {
+            return new()
             {
-                case PaymentScheme.Bacs:
-                    if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
-                    {
-                        result.Success = false;
-                        result.ErrorMessage = $"{PaymentScheme.Bacs} is not allowed for this account";
-                    }
-                    break;
-
-                case PaymentScheme.FasterPayments:
-                    if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
-                    {
-                        result.Success = false;
-                        result.ErrorMessage = $"{PaymentScheme.FasterPayments} is not allowed for this account";
-                    }
-                    else if (account.Balance < amount)
-                    {
-                        result.Success = false;
-                        result.ErrorMessage = $"Insufficient Funds in account {debtorAccountNumber}";
-                    }
-                    break;
-
-                case PaymentScheme.Chaps:
-                    if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
-                    {
-                        result.Success = false;
-                        result.ErrorMessage = $"{PaymentScheme.Chaps} is not allowed for this account";
-                    }
-                    else if (account.Status != AccountStatus.Live)
-                    {
-                        result.Success = false;
-                        result.ErrorMessage = $"{debtorAccountNumber} cannot perform payments";
-                    }
-                    break;
-            }
-
-            if (result.Success)
-            {
-                account.Balance -= amount;
-                _accountDataStore.UpdateAccount(account);
-                
-            }
-
-            return result;
+                Success = false,
+                ErrorMessage = validationMessage
+            };
         }
 
         private static MakePaymentResult InvalidAccountResult(string debtorAccountNumber)
@@ -75,6 +57,16 @@ namespace ClearBank.DeveloperTest.Services
             {
                 Success = false,
                 ErrorMessage = $"{debtorAccountNumber} is not a valid account number"
+            };
+        }
+
+        private static Dictionary<PaymentScheme, IPaymentSchemeValidator> InitializePaymentSchemeValidators()
+        {
+            return new()
+            {
+                {PaymentScheme.Bacs, new BacsSchemeValidator()},
+                {PaymentScheme.Chaps, new ChapsSchemeValidator()},
+                {PaymentScheme.FasterPayments, new FasterPaymentsSchemeValidator()}
             };
         }
     }

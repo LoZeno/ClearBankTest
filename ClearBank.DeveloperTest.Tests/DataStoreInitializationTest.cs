@@ -18,7 +18,7 @@ namespace ClearBank.DeveloperTest.Tests
 
             Assert.IsType<BackupAccountDataStore>(accountDataStore);
         }
-        
+
         [Fact]
         public void WhenDataStoreInConfigIsMain_InitializesDataStore()
         {
@@ -30,7 +30,7 @@ namespace ClearBank.DeveloperTest.Tests
 
             Assert.IsType<AccountDataStore>(accountDataStore);
         }
-        
+
         [Theory]
         [InlineData("NonValid")]
         [InlineData("")]

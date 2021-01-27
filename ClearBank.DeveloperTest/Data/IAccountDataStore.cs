@@ -4,7 +4,7 @@ namespace ClearBank.DeveloperTest.Data
 {
     public interface IAccountDataStore
     {
-        bool TryGetAccount(string accountNumber, out Account account);
+        (bool exists, Account account) GetAccount(string accountNumber);
         void UpdateAccount(Account account);
     }
 }

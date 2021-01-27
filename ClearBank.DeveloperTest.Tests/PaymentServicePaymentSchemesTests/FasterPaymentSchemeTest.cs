@@ -9,16 +9,16 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
 {
     public class FasterPaymentSchemeTest
     {
+        private const string ExistingDebtorAccountNumber = "debtorAccount";
         private readonly Mock<IAccountDataStore> _mockDataStore;
         private readonly PaymentService _paymentService;
-        private const string ExistingDebtorAccountNumber = "debtorAccount";
 
         public FasterPaymentSchemeTest()
         {
             _mockDataStore = new Mock<IAccountDataStore>();
             _paymentService = new PaymentService(_mockDataStore.Object);
         }
-        
+
         [Fact]
         public void WhenRequestIsValid_AndAccountIsNotAllowedForFasterPayments_ReturnsFailedPayment_WithReason()
         {
@@ -26,8 +26,8 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
             {
                 AllowedPaymentSchemes = AllowedPaymentSchemes.Bacs
             };
-            _mockDataStore.Setup(dataStore => dataStore.TryGetAccount(It.IsAny<string>(), out storedAccount)).Returns(true);
-            
+            _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns((true, storedAccount));
+
             var makePaymentRequest = new MakePaymentRequest(
                 "creditorAccount",
                 ExistingDebtorAccountNumber,
@@ -35,21 +35,23 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
                 PaymentScheme.FasterPayments);
 
             var paymentResult = _paymentService.MakePayment(makePaymentRequest);
-            
+
             Assert.False(paymentResult.Success);
             Assert.Equal($"{PaymentScheme.FasterPayments} is not allowed for this account", paymentResult.ErrorMessage);
         }
-        
+
         [Fact]
-        public void WhenRequestIsValid_AndAccountIsAllowedForFasterPayments_ButBalanceIsLessThanPayment_ReturnsFailedPayment_WithReason()
+        public void
+            WhenRequestIsValid_AndAccountIsAllowedForFasterPayments_ButBalanceIsLessThanPayment_ReturnsFailedPayment_WithReason()
         {
             var storedAccount = new Account
             {
+                AccountNumber = ExistingDebtorAccountNumber,
                 Balance = 90m,
                 AllowedPaymentSchemes = AllowedPaymentSchemes.FasterPayments
             };
-            _mockDataStore.Setup(dataStore => dataStore.TryGetAccount(It.IsAny<string>(), out storedAccount)).Returns(true);
-            
+            _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns((true, storedAccount));
+
             var makePaymentRequest = new MakePaymentRequest(
                 "creditorAccount",
                 ExistingDebtorAccountNumber,
@@ -57,7 +59,7 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
                 PaymentScheme.FasterPayments);
 
             var paymentResult = _paymentService.MakePayment(makePaymentRequest);
-            
+
             Assert.False(paymentResult.Success);
             Assert.Equal($"Insufficient Funds in account {ExistingDebtorAccountNumber}", paymentResult.ErrorMessage);
         }

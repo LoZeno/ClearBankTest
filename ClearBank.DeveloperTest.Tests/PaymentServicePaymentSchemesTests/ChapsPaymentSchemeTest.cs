@@ -9,16 +9,16 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
 {
     public class ChapsPaymentSchemeTest
     {
+        private const string ExistingDebtorAccountNumber = "debtorAccount";
         private readonly Mock<IAccountDataStore> _mockDataStore;
         private readonly PaymentService _paymentService;
-        private const string ExistingDebtorAccountNumber = "debtorAccount";
 
         public ChapsPaymentSchemeTest()
         {
             _mockDataStore = new Mock<IAccountDataStore>();
             _paymentService = new PaymentService(_mockDataStore.Object);
         }
-        
+
         [Fact]
         public void WhenRequestIsValid_AndAccountIsNotAllowedChaps_ReturnsFailedPayment_WithReason()
         {
@@ -26,8 +26,8 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
             {
                 AllowedPaymentSchemes = AllowedPaymentSchemes.FasterPayments
             };
-            _mockDataStore.Setup(dataStore => dataStore.TryGetAccount(It.IsAny<string>(), out storedAccount)).Returns(true);
-            
+            _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns((true, storedAccount));
+
             var makePaymentRequest = new MakePaymentRequest(
                 "creditorAccount",
                 ExistingDebtorAccountNumber,
@@ -35,23 +35,26 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
                 PaymentScheme.Chaps);
 
             var paymentResult = _paymentService.MakePayment(makePaymentRequest);
-            
+
             Assert.False(paymentResult.Success);
             Assert.Equal($"{PaymentScheme.Chaps} is not allowed for this account", paymentResult.ErrorMessage);
         }
-        
+
         [Theory]
         [InlineData(AccountStatus.Disabled)]
         [InlineData(AccountStatus.InboundPaymentsOnly)]
-        public void WhenRequestIsValid_AndAccountIsAllowedForChaps_AccountStatusIsNotLive_ReturnsFailedPayment_WithReason(AccountStatus accountStatus)
+        public void
+            WhenRequestIsValid_AndAccountIsAllowedForChaps_AccountStatusIsNotLive_ReturnsFailedPayment_WithReason(
+                AccountStatus accountStatus)
         {
             var storedAccount = new Account
             {
+                AccountNumber = ExistingDebtorAccountNumber,
                 Status = accountStatus,
                 AllowedPaymentSchemes = AllowedPaymentSchemes.Chaps
             };
-            _mockDataStore.Setup(dataStore => dataStore.TryGetAccount(It.IsAny<string>(), out storedAccount)).Returns(true);
-            
+            _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns((true, storedAccount));
+
             var makePaymentRequest = new MakePaymentRequest(
                 "creditorAccount",
                 ExistingDebtorAccountNumber,
@@ -59,7 +62,7 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
                 PaymentScheme.Chaps);
 
             var paymentResult = _paymentService.MakePayment(makePaymentRequest);
-            
+
             Assert.False(paymentResult.Success);
             Assert.Equal($"{ExistingDebtorAccountNumber} cannot perform payments", paymentResult.ErrorMessage);
         }

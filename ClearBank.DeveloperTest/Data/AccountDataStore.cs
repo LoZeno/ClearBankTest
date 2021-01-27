@@ -4,11 +4,10 @@ namespace ClearBank.DeveloperTest.Data
 {
     public class AccountDataStore : IAccountDataStore
     {
-        public bool TryGetAccount(string accountNumber, out Account account)
+        public (bool exists, Account account) GetAccount(string accountNumber)
         {
             // Access database to retrieve account, code removed for brevity 
-            account = new Account();
-            return true;
+            return (true, new Account());
         }
 
         public void UpdateAccount(Account account)

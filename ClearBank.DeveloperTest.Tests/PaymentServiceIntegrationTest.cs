@@ -11,27 +11,28 @@ namespace ClearBank.DeveloperTest.Tests
     {
         private const string NonExistingDebtorAccountNumber = "nonExistingDebtorAccount";
         private const string ExistingDebtorAccountNumber = "debtorAccount";
-        private readonly PaymentService _paymentService;
         private readonly Mock<IAccountDataStore> _mockDataStore;
+        private readonly PaymentService _paymentService;
 
         public PaymentServiceIntegrationTest()
         {
             _mockDataStore = new Mock<IAccountDataStore>();
             _paymentService = new PaymentService(_mockDataStore.Object);
         }
-        
+
         [Theory]
         [InlineData(PaymentScheme.FasterPayments, AllowedPaymentSchemes.Bacs)]
         [InlineData(PaymentScheme.Bacs, AllowedPaymentSchemes.Chaps)]
         [InlineData(PaymentScheme.Chaps, AllowedPaymentSchemes.FasterPayments)]
-        public void WhenRequestIsValid_AndAccountHasNoAllowedPaymentSchemes_ReturnsFailedPayment_WithReason(PaymentScheme requestedScheme, AllowedPaymentSchemes allowedScheme)
+        public void WhenRequestIsValid_AndAccountHasNoAllowedPaymentSchemes_ReturnsFailedPayment_WithReason(
+            PaymentScheme requestedScheme, AllowedPaymentSchemes allowedScheme)
         {
             var storedAccount = new Account
             {
                 AllowedPaymentSchemes = allowedScheme
             };
-            _mockDataStore.Setup(dataStore => dataStore.TryGetAccount(It.IsAny<string>(), out storedAccount)).Returns(true);
-            
+            _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns((true, storedAccount));
+
             var makePaymentRequest = new MakePaymentRequest(
                 "creditorAccount",
                 ExistingDebtorAccountNumber,
@@ -39,7 +40,7 @@ namespace ClearBank.DeveloperTest.Tests
                 requestedScheme);
 
             var paymentResult = _paymentService.MakePayment(makePaymentRequest);
-            
+
             Assert.False(paymentResult.Success);
             Assert.Equal($"{requestedScheme} is not allowed for this account", paymentResult.ErrorMessage);
         }
@@ -47,10 +48,9 @@ namespace ClearBank.DeveloperTest.Tests
         [Fact]
         public void WhenRequestIsValid_AndAccountDoesNotExist_ReturnsFailedPayment_WithReason()
         {
-            Account account = null;
-            _mockDataStore.Setup(dataStore =>dataStore.TryGetAccount(It.IsAny<string>(), out account))
-                .Returns(false);
-            
+            _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>()))
+                .Returns((false, null));
+
             var makePaymentRequest = new MakePaymentRequest(
                 "creditorAccount",
                 NonExistingDebtorAccountNumber,
@@ -58,11 +58,11 @@ namespace ClearBank.DeveloperTest.Tests
                 PaymentScheme.FasterPayments);
 
             var paymentResult = _paymentService.MakePayment(makePaymentRequest);
-            
+
             Assert.False(paymentResult.Success);
             Assert.Equal($"{NonExistingDebtorAccountNumber} is not a valid account number", paymentResult.ErrorMessage);
         }
-        
+
         [Fact]
         public void WhenRequestIsValid_AndAccountExists_AndHasMatchingAllowedPaymentScheme_ReturnsSuccess()
         {
@@ -71,9 +71,9 @@ namespace ClearBank.DeveloperTest.Tests
                 Balance = 1000m,
                 AllowedPaymentSchemes = AllowedPaymentSchemes.FasterPayments
             };
-            _mockDataStore.Setup(dataStore =>dataStore.TryGetAccount(ExistingDebtorAccountNumber, out storedAccount))
-                .Returns(true);
-            
+            _mockDataStore.Setup(dataStore => dataStore.GetAccount(ExistingDebtorAccountNumber))
+                .Returns((true, storedAccount));
+
             var makePaymentRequest = new MakePaymentRequest(
                 "creditorAccount",
                 ExistingDebtorAccountNumber,
@@ -81,7 +81,7 @@ namespace ClearBank.DeveloperTest.Tests
                 PaymentScheme.FasterPayments);
 
             var paymentResult = _paymentService.MakePayment(makePaymentRequest);
-            
+
             Assert.True(paymentResult.Success);
         }
     }

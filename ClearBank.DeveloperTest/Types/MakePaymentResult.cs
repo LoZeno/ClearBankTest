@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ClearBank.DeveloperTest.Types
+﻿namespace ClearBank.DeveloperTest.Types
 {
     public class MakePaymentResult
     {
