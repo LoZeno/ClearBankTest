@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Configuration;
+using ClearBank.DeveloperTest.Data;
 using ClearBank.DeveloperTest.Services;
 using ClearBank.DeveloperTest.Types;
+using Moq;
 using Xunit;
 
 namespace ClearBank.DeveloperTest.Tests
@@ -11,19 +13,26 @@ namespace ClearBank.DeveloperTest.Tests
         private const string NonExistingDebtorAccountNumber = "nonExistingDebtorAccount";
         private const string ExistingDebtorAccountNumber = "debtorAccount";
         private readonly PaymentService _paymentService;
+        private readonly Mock<IAccountDataStore> _mockDataStore;
 
         public PaymentServiceIntegrationTest()
         {
             ConfigurationManager.AppSettings["DataStoreType"] = "NonBackup";
-            _paymentService = new PaymentService();
+            _mockDataStore = new Mock<IAccountDataStore>();
+            _paymentService = new PaymentService(_mockDataStore.Object);
         }
         
         [Theory]
-        [InlineData(PaymentScheme.FasterPayments)]
-        [InlineData(PaymentScheme.Bacs)]
-        [InlineData(PaymentScheme.Chaps)]
-        public void WhenRequestIsValid_AndAccountHasNoAllowedPaymentSchemes_ReturnsFailedPayment_WithReason(PaymentScheme requestedScheme)
+        [InlineData(PaymentScheme.FasterPayments, AllowedPaymentSchemes.Bacs)]
+        [InlineData(PaymentScheme.Bacs, AllowedPaymentSchemes.Chaps)]
+        [InlineData(PaymentScheme.Chaps, AllowedPaymentSchemes.FasterPayments)]
+        public void WhenRequestIsValid_AndAccountHasNoAllowedPaymentSchemes_ReturnsFailedPayment_WithReason(PaymentScheme requestedScheme, AllowedPaymentSchemes allowedScheme)
         {
+            _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns(new Account()
+            {
+                AllowedPaymentSchemes = allowedScheme
+            });
+            
             var makePaymentRequest = new MakePaymentRequest(
                 "creditorAccount",
                 ExistingDebtorAccountNumber,
@@ -39,6 +48,9 @@ namespace ClearBank.DeveloperTest.Tests
         [Fact]
         public void WhenRequestIsValid_AndAccountDoesNotExist_ReturnsFailedPayment_WithReason()
         {
+            _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>()))
+                .Returns<Account>(null);
+            
             var makePaymentRequest = new MakePaymentRequest(
                 "creditorAccount",
                 NonExistingDebtorAccountNumber,

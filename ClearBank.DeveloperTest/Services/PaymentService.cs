@@ -6,22 +6,28 @@ namespace ClearBank.DeveloperTest.Services
 {
     public class PaymentService : IPaymentService
     {
+        private readonly IAccountDataStore _accountDataStore;
+
+        public PaymentService(IAccountDataStore accountDataStore)
+        {
+            _accountDataStore = accountDataStore;
+        }
         public MakePaymentResult MakePayment(MakePaymentRequest request)
         {
             var dataStoreType = ConfigurationManager.AppSettings["DataStoreType"];
 
-            Account account = null;
+            Account account = _accountDataStore.GetAccount(request.DebtorAccountNumber);
 
-            if (dataStoreType == "Backup")
-            {
-                var accountDataStore = new BackupAccountDataStore();
-                account = accountDataStore.GetAccount(request.DebtorAccountNumber);
-            }
-            else
-            {
-                var accountDataStore = new AccountDataStore();
-                account = accountDataStore.GetAccount(request.DebtorAccountNumber);
-            }
+            // if (dataStoreType == "Backup")
+            // {
+            //     var accountDataStore = new BackupAccountDataStore();
+            //     account = accountDataStore.GetAccount(request.DebtorAccountNumber);
+            // }
+            // else
+            // {
+            //     var accountDataStore = new AccountDataStore();
+            //     account = accountDataStore.GetAccount(request.DebtorAccountNumber);
+            // }
 
             var result = new MakePaymentResult();
 
@@ -31,6 +37,7 @@ namespace ClearBank.DeveloperTest.Services
                     if (account == null)
                     {
                         result.Success = false;
+                        result.ErrorMessage = $"{request.DebtorAccountNumber} is not a valid account number";
                     }
                     else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
                     {
@@ -43,6 +50,7 @@ namespace ClearBank.DeveloperTest.Services
                     if (account == null)
                     {
                         result.Success = false;
+                        result.ErrorMessage = $"{request.DebtorAccountNumber} is not a valid account number";
                     }
                     else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
                     {
@@ -59,6 +67,7 @@ namespace ClearBank.DeveloperTest.Services
                     if (account == null)
                     {
                         result.Success = false;
+                        result.ErrorMessage = $"{request.DebtorAccountNumber} is not a valid account number";
                     }
                     else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
                     {
