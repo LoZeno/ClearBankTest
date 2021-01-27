@@ -46,6 +46,7 @@ namespace ClearBank.DeveloperTest.Services
                     else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
                     {
                         result.Success = false;
+                        result.ErrorMessage = $"{PaymentScheme.FasterPayments} is not allowed for this account";
                     }
                     else if (account.Balance < request.Amount)
                     {

@@ -8,7 +8,7 @@ namespace ClearBank.DeveloperTest.Tests
     public class PaymentServiceIntegrationTest
     {
         [Fact]
-        public void WhenRequestIsValid_AndAccountHasNoAllowedPayments_ReturnsFailedPayment()
+        public void WhenRequestIsValid_AndAccountHasNoAllowedPayments_ReturnsFailedPayment_WithReason()
         {
             ConfigurationManager.AppSettings["DataStoreType"] = "NonBackup";
 
@@ -22,6 +22,7 @@ namespace ClearBank.DeveloperTest.Tests
             var paymentResult = paymentService.MakePayment(makePaymentRequest);
             
             Assert.False(paymentResult.Success);
+            Assert.Equal($"{PaymentScheme.FasterPayments} is not allowed for this account", paymentResult.ErrorMessage);
         }
     }
 }
