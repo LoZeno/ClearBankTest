@@ -35,6 +35,7 @@ namespace ClearBank.DeveloperTest.Services
                     else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
                     {
                         result.Success = false;
+                        result.ErrorMessage = $"{PaymentScheme.Bacs} is not allowed for this account";
                     }
                     break;
 
@@ -62,6 +63,7 @@ namespace ClearBank.DeveloperTest.Services
                     else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
                     {
                         result.Success = false;
+                        result.ErrorMessage = $"{PaymentScheme.Chaps} is not allowed for this account";
                     }
                     else if (account.Status != AccountStatus.Live)
                     {
