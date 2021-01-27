@@ -8,11 +8,12 @@ namespace ClearBank.DeveloperTest.Services.PaymentSchemeValidators
             MakePaymentRequest paymentRequest,
             Account debtorAccount)
         {
-            if (!debtorAccount.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
+            var (accountNumber, balance, _, allowedPaymentSchemes) = debtorAccount;
+            if (!allowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
                 return (false, $"{PaymentScheme.FasterPayments} is not allowed for this account");
 
-            if (debtorAccount.Balance < paymentRequest.Amount)
-                return (false, $"Insufficient Funds in account {debtorAccount.AccountNumber}");
+            if (balance < paymentRequest.Amount)
+                return (false, $"Insufficient Funds in account {accountNumber}");
 
             return (true, string.Empty);
         }

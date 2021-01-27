@@ -22,7 +22,8 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
         [Fact]
         public void WhenRequestIsValid_AndAccountIsNotAllowedForFasterPayments_ReturnsFailedPayment_WithReason()
         {
-            var storedAccount = new Account(ExistingDebtorAccountNumber, 100m, AccountStatus.Live, AllowedPaymentSchemes.Bacs);
+            var storedAccount = new Account(ExistingDebtorAccountNumber, 100m, AccountStatus.Live,
+                AllowedPaymentSchemes.Bacs);
             _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns((true, storedAccount));
 
             var makePaymentRequest = new MakePaymentRequest(
@@ -41,7 +42,8 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
         public void
             WhenRequestIsValid_AndAccountIsAllowedForFasterPayments_ButBalanceIsLessThanPayment_ReturnsFailedPayment_WithReason()
         {
-            var storedAccount = new Account(ExistingDebtorAccountNumber, 90m, AccountStatus.Live, AllowedPaymentSchemes.FasterPayments);
+            var storedAccount = new Account(ExistingDebtorAccountNumber, 90m, AccountStatus.Live,
+                AllowedPaymentSchemes.FasterPayments);
             _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns((true, storedAccount));
 
             var makePaymentRequest = new MakePaymentRequest(

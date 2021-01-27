@@ -7,13 +7,14 @@ namespace ClearBank.DeveloperTest.Services
 {
     public class PaymentService : IPaymentService
     {
+        private static readonly IDictionary<PaymentScheme, IPaymentSchemeValidator> PaymentSchemeValidators =
+            InitializePaymentSchemeValidators();
+
         private readonly IAccountDataStore _accountDataStore;
-        private readonly IDictionary<PaymentScheme, IPaymentSchemeValidator> _paymentSchemeValidators;
 
         public PaymentService(IAccountDataStore accountDataStore)
         {
             _accountDataStore = accountDataStore;
-            _paymentSchemeValidators = InitializePaymentSchemeValidators();
         }
 
         public MakePaymentResult MakePayment(MakePaymentRequest request)
@@ -24,10 +25,8 @@ namespace ClearBank.DeveloperTest.Services
             if (!accountExists)
                 return InvalidAccountResult(debtorAccountNumber);
 
-            var paymentValidator = _paymentSchemeValidators[paymentScheme];
-
+            var paymentValidator = PaymentSchemeValidators[paymentScheme];
             var (isValid, validationMessage) = paymentValidator.IsRequestValidForPayment(request, account);
-
             if (!isValid)
                 return AccountNotAllowedForPaymentResult(validationMessage);
 
@@ -39,7 +38,10 @@ namespace ClearBank.DeveloperTest.Services
 
         private static MakePaymentResult PaymentSuccessfulResult()
         {
-            return new() {Success = true};
+            return new()
+            {
+                Success = true
+            };
         }
 
         private static MakePaymentResult AccountNotAllowedForPaymentResult(string validationMessage)

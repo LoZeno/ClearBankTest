@@ -13,7 +13,6 @@ namespace ClearBank.DeveloperTest.Tests
             ConfigurationManager.AppSettings["DataStoreType"] = "Backup";
 
             var ioc = new InjectionContainer();
-
             var accountDataStore = ioc.GetProvider().GetRequiredService<IAccountDataStore>();
 
             Assert.IsType<BackupAccountDataStore>(accountDataStore);
@@ -25,7 +24,6 @@ namespace ClearBank.DeveloperTest.Tests
             ConfigurationManager.AppSettings["DataStoreType"] = "Main";
 
             var ioc = new InjectionContainer();
-
             var accountDataStore = ioc.GetProvider().GetRequiredService<IAccountDataStore>();
 
             Assert.IsType<AccountDataStore>(accountDataStore);

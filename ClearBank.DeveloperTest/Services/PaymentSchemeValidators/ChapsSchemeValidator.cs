@@ -8,11 +8,12 @@ namespace ClearBank.DeveloperTest.Services.PaymentSchemeValidators
             MakePaymentRequest paymentRequest,
             Account debtorAccount)
         {
-            if (!debtorAccount.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
+            var (accountNumber, _, accountStatus, allowedPaymentSchemes) = debtorAccount;
+            if (!allowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
                 return (false, $"{PaymentScheme.Chaps} is not allowed for this account");
 
-            if (debtorAccount.Status != AccountStatus.Live)
-                return (false, $"{debtorAccount.AccountNumber} cannot perform payments");
+            if (accountStatus != AccountStatus.Live)
+                return (false, $"{accountNumber} cannot perform payments");
 
             return (true, string.Empty);
         }
