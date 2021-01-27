@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 using ClearBank.DeveloperTest.Data;
 using ClearBank.DeveloperTest.Services;
 using ClearBank.DeveloperTest.Types;
@@ -27,10 +26,11 @@ namespace ClearBank.DeveloperTest.Tests
         [InlineData(PaymentScheme.Chaps, AllowedPaymentSchemes.FasterPayments)]
         public void WhenRequestIsValid_AndAccountHasNoAllowedPaymentSchemes_ReturnsFailedPayment_WithReason(PaymentScheme requestedScheme, AllowedPaymentSchemes allowedScheme)
         {
-            _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns(new Account()
+            var storedAccount = new Account
             {
                 AllowedPaymentSchemes = allowedScheme
-            });
+            };
+            _mockDataStore.Setup(dataStore => dataStore.TryGetAccount(It.IsAny<string>(), out storedAccount)).Returns(true);
             
             var makePaymentRequest = new MakePaymentRequest(
                 "creditorAccount",
@@ -47,8 +47,9 @@ namespace ClearBank.DeveloperTest.Tests
         [Fact]
         public void WhenRequestIsValid_AndAccountDoesNotExist_ReturnsFailedPayment_WithReason()
         {
-            _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>()))
-                .Returns<Account>(null);
+            Account account = null;
+            _mockDataStore.Setup(dataStore =>dataStore.TryGetAccount(It.IsAny<string>(), out account))
+                .Returns(false);
             
             var makePaymentRequest = new MakePaymentRequest(
                 "creditorAccount",
@@ -60,6 +61,28 @@ namespace ClearBank.DeveloperTest.Tests
             
             Assert.False(paymentResult.Success);
             Assert.Equal($"{NonExistingDebtorAccountNumber} is not a valid account number", paymentResult.ErrorMessage);
+        }
+        
+        [Fact]
+        public void WhenRequestIsValid_AndAccountExists_AndHasMatchingAllowedPaymentScheme_ReturnsSuccess()
+        {
+            var storedAccount = new Account
+            {
+                Balance = 1000m,
+                AllowedPaymentSchemes = AllowedPaymentSchemes.FasterPayments
+            };
+            _mockDataStore.Setup(dataStore =>dataStore.TryGetAccount(ExistingDebtorAccountNumber, out storedAccount))
+                .Returns(true);
+            
+            var makePaymentRequest = new MakePaymentRequest(
+                "creditorAccount",
+                ExistingDebtorAccountNumber,
+                100.0m, DateTime.Now,
+                PaymentScheme.FasterPayments);
+
+            var paymentResult = _paymentService.MakePayment(makePaymentRequest);
+            
+            Assert.True(paymentResult.Success);
         }
     }
 }

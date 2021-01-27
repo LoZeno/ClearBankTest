@@ -1,6 +1,5 @@
 ﻿using ClearBank.DeveloperTest.Data;
 using ClearBank.DeveloperTest.Types;
-using System.Configuration;
 
 namespace ClearBank.DeveloperTest.Services
 {
@@ -14,17 +13,22 @@ namespace ClearBank.DeveloperTest.Services
         }
         public MakePaymentResult MakePayment(MakePaymentRequest request)
         {
-            var account = _accountDataStore.GetAccount(request.DebtorAccountNumber);
+            var (_, debtorAccountNumber, amount, _, paymentScheme) = request;
+            
+            if (!_accountDataStore.TryGetAccount(debtorAccountNumber, out var account))
+            {
+                return InvalidAccountResult(debtorAccountNumber);
+            }   
 
-            var result = new MakePaymentResult();
+            var result = new MakePaymentResult{Success = true};
 
-            switch (request.PaymentScheme)
+            switch (paymentScheme)
             {
                 case PaymentScheme.Bacs:
                     if (account == null)
                     {
                         result.Success = false;
-                        result.ErrorMessage = $"{request.DebtorAccountNumber} is not a valid account number";
+                        result.ErrorMessage = $"{debtorAccountNumber} is not a valid account number";
                     }
                     else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
                     {
@@ -37,14 +41,14 @@ namespace ClearBank.DeveloperTest.Services
                     if (account == null)
                     {
                         result.Success = false;
-                        result.ErrorMessage = $"{request.DebtorAccountNumber} is not a valid account number";
+                        result.ErrorMessage = $"{debtorAccountNumber} is not a valid account number";
                     }
                     else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
                     {
                         result.Success = false;
                         result.ErrorMessage = $"{PaymentScheme.FasterPayments} is not allowed for this account";
                     }
-                    else if (account.Balance < request.Amount)
+                    else if (account.Balance < amount)
                     {
                         result.Success = false;
                     }
@@ -54,7 +58,7 @@ namespace ClearBank.DeveloperTest.Services
                     if (account == null)
                     {
                         result.Success = false;
-                        result.ErrorMessage = $"{request.DebtorAccountNumber} is not a valid account number";
+                        result.ErrorMessage = $"{debtorAccountNumber} is not a valid account number";
                     }
                     else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
                     {
@@ -70,12 +74,21 @@ namespace ClearBank.DeveloperTest.Services
 
             if (result.Success)
             {
-                account.Balance -= request.Amount;
+                account.Balance -= amount;
                 _accountDataStore.UpdateAccount(account);
                 
             }
 
             return result;
+        }
+
+        private static MakePaymentResult InvalidAccountResult(string debtorAccountNumber)
+        {
+            return new MakePaymentResult
+            {
+                Success = false,
+                ErrorMessage = $"{debtorAccountNumber} is not a valid account number"
+            };
         }
     }
 }
