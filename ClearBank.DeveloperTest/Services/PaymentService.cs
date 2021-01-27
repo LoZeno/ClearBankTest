@@ -41,6 +41,7 @@ namespace ClearBank.DeveloperTest.Services
                     else if (account.Balance < amount)
                     {
                         result.Success = false;
+                        result.ErrorMessage = $"Insufficient Funds in account {debtorAccountNumber}";
                     }
                     break;
 
@@ -53,6 +54,7 @@ namespace ClearBank.DeveloperTest.Services
                     else if (account.Status != AccountStatus.Live)
                     {
                         result.Success = false;
+                        result.ErrorMessage = $"{debtorAccountNumber} cannot perform payments";
                     }
                     break;
             }
