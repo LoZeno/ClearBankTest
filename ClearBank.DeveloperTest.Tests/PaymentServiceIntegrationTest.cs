@@ -68,6 +68,7 @@ namespace ClearBank.DeveloperTest.Tests
         {
             var storedAccount = new Account
             {
+                AccountNumber = ExistingDebtorAccountNumber,
                 Balance = 1000m,
                 AllowedPaymentSchemes = AllowedPaymentSchemes.FasterPayments
             };
@@ -83,6 +84,32 @@ namespace ClearBank.DeveloperTest.Tests
             var paymentResult = _paymentService.MakePayment(makePaymentRequest);
 
             Assert.True(paymentResult.Success);
+        }
+        
+        [Fact]
+        public void WhenRequestIsValid_AndAccountExists_AndHasMatchingAllowedPaymentScheme_UpdatesBalanceInDatastore()
+        {
+            var storedAccount = new Account
+            {
+                AccountNumber = ExistingDebtorAccountNumber,
+                Balance = 1000m,
+                AllowedPaymentSchemes = AllowedPaymentSchemes.FasterPayments
+            };
+            _mockDataStore.Setup(dataStore => dataStore.GetAccount(ExistingDebtorAccountNumber))
+                .Returns((true, storedAccount));
+
+            var makePaymentRequest = new MakePaymentRequest(
+                "creditorAccount",
+                ExistingDebtorAccountNumber,
+                100.0m, DateTime.Now,
+                PaymentScheme.FasterPayments);
+
+            var paymentResult = _paymentService.MakePayment(makePaymentRequest);
+
+            _mockDataStore.Verify(datastore => datastore.UpdateAccount(
+                It.Is<Account>(account => account.AccountNumber.Equals(ExistingDebtorAccountNumber)
+                                                && account.Balance.Equals(900m) 
+                )));
         }
     }
 }
