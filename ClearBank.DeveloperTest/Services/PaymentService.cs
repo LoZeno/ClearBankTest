@@ -31,8 +31,8 @@ namespace ClearBank.DeveloperTest.Services
             if (!isValid)
                 return AccountNotAllowedForPaymentResult(validationMessage);
 
-            account.Balance -= amount;
-            _accountDataStore.UpdateAccount(account);
+            var newBalance = account.Balance - amount;
+            _accountDataStore.UpdateAccount(account with { Balance = newBalance});
 
             return PaymentSuccessfulResult();
         }

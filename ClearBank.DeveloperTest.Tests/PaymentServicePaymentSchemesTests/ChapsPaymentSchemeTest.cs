@@ -22,10 +22,7 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
         [Fact]
         public void WhenRequestIsValid_AndAccountIsNotAllowedChaps_ReturnsFailedPayment_WithReason()
         {
-            var storedAccount = new Account
-            {
-                AllowedPaymentSchemes = AllowedPaymentSchemes.FasterPayments
-            };
+            var storedAccount = new Account(ExistingDebtorAccountNumber, 100, AccountStatus.Live, AllowedPaymentSchemes.FasterPayments);
             _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns((true, storedAccount));
 
             var makePaymentRequest = new MakePaymentRequest(
@@ -47,12 +44,7 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
             WhenRequestIsValid_AndAccountIsAllowedForChaps_AccountStatusIsNotLive_ReturnsFailedPayment_WithReason(
                 AccountStatus accountStatus)
         {
-            var storedAccount = new Account
-            {
-                AccountNumber = ExistingDebtorAccountNumber,
-                Status = accountStatus,
-                AllowedPaymentSchemes = AllowedPaymentSchemes.Chaps
-            };
+            var storedAccount = new Account(ExistingDebtorAccountNumber, 100m, accountStatus, AllowedPaymentSchemes.Chaps);
             _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns((true, storedAccount));
 
             var makePaymentRequest = new MakePaymentRequest(

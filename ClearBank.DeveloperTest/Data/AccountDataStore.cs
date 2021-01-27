@@ -1,4 +1,5 @@
-﻿using ClearBank.DeveloperTest.Types;
+﻿using System;
+using ClearBank.DeveloperTest.Types;
 
 namespace ClearBank.DeveloperTest.Data
 {
@@ -7,7 +8,7 @@ namespace ClearBank.DeveloperTest.Data
         public (bool exists, Account account) GetAccount(string accountNumber)
         {
             // Access database to retrieve account, code removed for brevity 
-            return (true, new Account());
+            return (true, new Account(default, default, default,default));
         }
 
         public void UpdateAccount(Account account)

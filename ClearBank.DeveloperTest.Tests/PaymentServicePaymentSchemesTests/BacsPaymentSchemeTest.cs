@@ -22,11 +22,7 @@ namespace ClearBank.DeveloperTest.Tests.PaymentServicePaymentSchemesTests
         [Fact]
         public void WhenRequestIsValid_AndAccountIsNotAllowedForBacs_ReturnsFailedPayment_WithReason()
         {
-            var storedAccount = new Account
-            {
-                AccountNumber = ExistingDebtorAccountNumber,
-                AllowedPaymentSchemes = AllowedPaymentSchemes.Chaps
-            };
+            var storedAccount = new Account(ExistingDebtorAccountNumber, 100, AccountStatus.Live, AllowedPaymentSchemes.Chaps);
             _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns((true, storedAccount));
 
             var makePaymentRequest = new MakePaymentRequest(

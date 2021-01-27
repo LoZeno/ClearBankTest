@@ -7,7 +7,7 @@ namespace ClearBank.DeveloperTest.Data
         public (bool exists, Account account) GetAccount(string accountNumber)
         {
             // Access backup data base to retrieve account, code removed for brevity 
-            return (true, new Account());
+            return (true, new Account(default, default, default, default));
         }
 
         public void UpdateAccount(Account account)

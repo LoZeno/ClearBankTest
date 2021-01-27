@@ -27,10 +27,7 @@ namespace ClearBank.DeveloperTest.Tests
         public void WhenRequestIsValid_AndAccountHasNoAllowedPaymentSchemes_ReturnsFailedPayment_WithReason(
             PaymentScheme requestedScheme, AllowedPaymentSchemes allowedScheme)
         {
-            var storedAccount = new Account
-            {
-                AllowedPaymentSchemes = allowedScheme
-            };
+            var storedAccount = new Account(ExistingDebtorAccountNumber, 100m, AccountStatus.Live, allowedScheme);
             _mockDataStore.Setup(dataStore => dataStore.GetAccount(It.IsAny<string>())).Returns((true, storedAccount));
 
             var makePaymentRequest = new MakePaymentRequest(
@@ -66,12 +63,7 @@ namespace ClearBank.DeveloperTest.Tests
         [Fact]
         public void WhenRequestIsValid_AndAccountExists_AndHasMatchingAllowedPaymentScheme_ReturnsSuccess()
         {
-            var storedAccount = new Account
-            {
-                AccountNumber = ExistingDebtorAccountNumber,
-                Balance = 1000m,
-                AllowedPaymentSchemes = AllowedPaymentSchemes.FasterPayments
-            };
+            var storedAccount = new Account(ExistingDebtorAccountNumber, 1000m, AccountStatus.Live, AllowedPaymentSchemes.FasterPayments);
             _mockDataStore.Setup(dataStore => dataStore.GetAccount(ExistingDebtorAccountNumber))
                 .Returns((true, storedAccount));
 
@@ -89,12 +81,7 @@ namespace ClearBank.DeveloperTest.Tests
         [Fact]
         public void WhenRequestIsValid_AndAccountExists_AndHasMatchingAllowedPaymentScheme_UpdatesBalanceInDatastore()
         {
-            var storedAccount = new Account
-            {
-                AccountNumber = ExistingDebtorAccountNumber,
-                Balance = 1000m,
-                AllowedPaymentSchemes = AllowedPaymentSchemes.FasterPayments
-            };
+            var storedAccount = new Account(ExistingDebtorAccountNumber, 1000m, AccountStatus.Live, AllowedPaymentSchemes.FasterPayments);
             _mockDataStore.Setup(dataStore => dataStore.GetAccount(ExistingDebtorAccountNumber))
                 .Returns((true, storedAccount));
 
@@ -104,7 +91,7 @@ namespace ClearBank.DeveloperTest.Tests
                 100.0m, DateTime.Now,
                 PaymentScheme.FasterPayments);
 
-            var paymentResult = _paymentService.MakePayment(makePaymentRequest);
+            _ = _paymentService.MakePayment(makePaymentRequest);
 
             _mockDataStore.Verify(datastore => datastore.UpdateAccount(
                 It.Is<Account>(account => account.AccountNumber.Equals(ExistingDebtorAccountNumber)
