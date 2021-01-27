@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ClearBank.DeveloperTest
 {
+    /// <summary>
+    /// This class represent the ioc container for the (eventual) application 
+    /// </summary>
     public class InjectionContainer
     {
         private readonly IServiceCollection _serviceCollection;
