@@ -17,7 +17,6 @@ namespace ClearBank.DeveloperTest.Tests
 
         public PaymentServiceIntegrationTest()
         {
-            ConfigurationManager.AppSettings["DataStoreType"] = "NonBackup";
             _mockDataStore = new Mock<IAccountDataStore>();
             _paymentService = new PaymentService(_mockDataStore.Object);
         }
