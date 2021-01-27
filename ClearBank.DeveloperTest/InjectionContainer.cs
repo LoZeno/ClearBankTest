@@ -18,7 +18,7 @@ namespace ClearBank.DeveloperTest
             {
                 "Backup" => _serviceCollection.AddSingleton<IAccountDataStore, BackupAccountDataStore>(),
                 "Main" => _serviceCollection.AddSingleton<IAccountDataStore, AccountDataStore>(),
-                _ => throw new ConfigurationErrorsException()
+                _ => throw new ConfigurationErrorsException("Invalid DataStoreType configuration")
             };
         }
         public IServiceProvider GetProvider()

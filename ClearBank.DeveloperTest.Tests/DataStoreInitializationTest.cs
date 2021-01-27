@@ -31,12 +31,16 @@ namespace ClearBank.DeveloperTest.Tests
             Assert.IsType<AccountDataStore>(accountDataStore);
         }
         
-        [Fact]
-        public void WhenDataStoreInConfigIsNotValid_ThrowsConfigurationErrorsException()
+        [Theory]
+        [InlineData("NonValid")]
+        [InlineData("")]
+        [InlineData(null)]
+        public void WhenDataStoreInConfigIsNotValid_ThrowsConfigurationErrorsException(string configurationValue)
         {
-            ConfigurationManager.AppSettings["DataStoreType"] = "NonValid";
+            ConfigurationManager.AppSettings["DataStoreType"] = configurationValue;
 
-            Assert.Throws<ConfigurationErrorsException>(() => new InjectionContainer());
+            var exception = Assert.Throws<ConfigurationErrorsException>(() => new InjectionContainer());
+            Assert.Equal("Invalid DataStoreType configuration", exception.Message);
         }
     }
 }
