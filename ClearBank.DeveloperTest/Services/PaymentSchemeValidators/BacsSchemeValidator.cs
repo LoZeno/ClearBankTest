@@ -2,7 +2,7 @@
 
 namespace ClearBank.DeveloperTest.Services.PaymentSchemeValidators
 {
-    public class BacsSchemeValidator : IPaymentSchemeValidator
+    internal class BacsSchemeValidator : IPaymentSchemeValidator
     {
         public (bool isValid, string validationMessage) IsRequestValidForPayment(
             MakePaymentRequest paymentRequest,

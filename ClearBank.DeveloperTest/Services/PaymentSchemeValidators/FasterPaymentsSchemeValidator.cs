@@ -2,7 +2,7 @@
 
 namespace ClearBank.DeveloperTest.Services.PaymentSchemeValidators
 {
-    public class FasterPaymentsSchemeValidator : IPaymentSchemeValidator
+    internal class FasterPaymentsSchemeValidator : IPaymentSchemeValidator
     {
         public (bool isValid, string validationMessage) IsRequestValidForPayment(
             MakePaymentRequest paymentRequest,

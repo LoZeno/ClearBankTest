@@ -2,7 +2,7 @@
 
 namespace ClearBank.DeveloperTest.Services.PaymentSchemeValidators
 {
-    public interface IPaymentSchemeValidator
+    internal interface IPaymentSchemeValidator
     {
         (bool isValid, string validationMessage) IsRequestValidForPayment(MakePaymentRequest paymentRequest,
             Account debtorAccount);
